@@ -44,12 +44,23 @@ from nltk.stem import WordNetLemmatizer
 #  NLTK bootstrap                                                       #
 # --------------------------------------------------------------------- #
 def _ensure_nltk() -> None:
-    for pkg, lookup in [
-        ("punkt_tab", "tokenizers/punkt_tab"),
-        ("averaged_perceptron_tagger_eng",
-         "taggers/averaged_perceptron_tagger_eng"),
-        ("wordnet", "corpora/wordnet"),
-    ]:
+    # Package names changed in NLTK 3.9+; detect which set to use.
+    import nltk as _nltk
+    ver = tuple(int(x) for x in _nltk.__version__.split(".")[:2])
+    if ver >= (3, 9):
+        pkgs = [
+            ("punkt_tab", "tokenizers/punkt_tab"),
+            ("averaged_perceptron_tagger_eng",
+             "taggers/averaged_perceptron_tagger_eng"),
+            ("wordnet", "corpora/wordnet"),
+        ]
+    else:
+        pkgs = [
+            ("punkt", "tokenizers/punkt"),
+            ("averaged_perceptron_tagger", "taggers/averaged_perceptron_tagger"),
+            ("wordnet", "corpora/wordnet"),
+        ]
+    for pkg, lookup in pkgs:
         try:
             nltk.data.find(lookup)
         except LookupError:
