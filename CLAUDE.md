@@ -71,6 +71,32 @@ The pipeline has four stages, each exposed individually in `prolog/chat80.pl`:
 
 **Operator definitions** (`chatops.pl`): defines `~=`, `=+`, `=:`, `:`, `&`, `~`, `--`, `ject` — load this first if working on any submodule.
 
+## Python reimplementation (`chat80.py`)
+
+A self-contained Python/NLTK reimplementation of CHAT-80 in a single file (~1240 lines).
+
+**Run:**
+```bash
+python3 chat80.py                 # interactive REPL
+python3 chat80.py --demo          # run the 24 canonical demo questions
+python3 chat80.py "What is the capital of France?"
+```
+
+Inside the REPL, prefix a question with `debug ` to see normalisation and pattern matching.
+
+**Architecture:**
+
+| Layer | Lines | Description |
+|---|---|---|
+| Knowledge base | 73–455 | Static dicts: countries (name, capital, area, pop, continent), land borders, sea/ocean borders, rivers, cities — circa-1980 values |
+| Lexicon / normalisation | 461–656 | Multi-word glueing, contraction expansion, genitive stripping, adjectival continent forms (`european` → `in_europe`), plural lemmatisation via WordNet |
+| Pattern handlers | 725–970 | ~40 functions, one per query type (capital lookup, borders, superlatives, aggregates, filtered population, landlocked, etc.) |
+| Pattern table | 977–1115 | Ordered `(regex, handler)` pairs tried with `re.fullmatch` against the normalised question; more-specific patterns first |
+| `ask()` | 1122–1137 | Normalises input, tries each pattern in order, calls matched handler |
+| Demo / REPL | 1144–1238 | 24 demo questions, interactive REPL, CLI entry point |
+
+Key trade-off vs. the Prolog original: no DCG/unification — regex pattern matching after normalisation.
+
 ## SWI-Prolog pack metadata
 
 `pack.pl` declares this as a redistributable pack named `chat80` version `1.1`. The pack home is `https://github.com/JanWielemaker/chat80.git`.
